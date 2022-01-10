@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <link rel="stylesheet" href="./styles/main.css">
-  <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+  <!--script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script-->
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -15,14 +15,16 @@
 
   <body>
     <div style="width: 100%; height: 500px;">
-      <div id="blocklyDiv" style="width: 50%; height: 495px;"></div>
+      <div id="blocklyDiv" style="width: 50%; height: 495px; display: inline-block;"></div>
 
-      <div style="width: 50%;">
+      <div style="width: 50%; display: inline;">
         <video class="input_video"></video>
-        <canvas class="output_canvas" width="400px" height="400px"></canvas>
+        <canvas class="output_canvas" width="640px" height="480px"></canvas>
+      </div>
+      <div>
+        <span id="usermessage"></span>
       </div>
     </div>
-    
     
     <script src="./scripts/blockly_compressed.js"></script>
     <script src="./scripts/blocks_compressed.js"></script>
@@ -337,30 +339,15 @@
       </category -->
       <category name="Variables" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
       <category name="Functions" colour="%{BKY_PROCEDURES_HUE}" custom="PROCEDURE"></category>
-  </xml>
+
+      <sep></sep>
+        <category name="AI" colour="%{BKY_PROCEDURES_HUE}">
+            <block type="ai_isIndexExtendend"></block>
+        </category>
+    </xml>
 
   </body>
 
-  <script>
-    this.workspace = Blockly.inject('blocklyDiv', {
-        toolbox: document.getElementById('toolbox'),
-        grid: {
-            spacing: 20,
-            length: 3,
-            colour: '#ccc',
-            snap: true
-        },
-        zoom: {
-            controls: true,
-            wheel: true,
-            startScale: 1.0,
-            maxScale: 3,
-            minScale: 0.3,
-            scaleSpeed: 1.2,
-            pinch: true
-        },
-        trashcan: true
-    });
-  </script>
+  <script src="./scripts/main.js"></script>
   
 </html>
