@@ -1,22 +1,4 @@
-Blockly.Blocks['ai_isIndexExtendend'] = {
-    init: function () {
-        this.jsonInit({
-            "type": "ai_isIndexExtendend",
-            "lastDummyAlign0": "CENTRE",
-            "message0": "Is Index Finger Up?",
-            "output": "Boolean",
-            "colour": 75,
-            "tooltip": "Is Index Finger Up?",
-            "helpUrl": "",
-        });
-    }
-};
-
-Blockly.JavaScript['ai_isIndexExtendend'] = function (block) {
-    return 'isHandExtended(landmarks)';
-};
-
-(function (w) {
+(function (w, $) {
 
     var handler = function () {
         this._setBlockly();
@@ -25,6 +7,10 @@ Blockly.JavaScript['ai_isIndexExtendend'] = function (block) {
 
     handler.prototype._attachEvents = function () {
         var self = this;
+
+        $('#startButton').on('click', function () {
+            self._run();
+        });
     };
 
     handler.prototype._run = function () {
@@ -35,6 +21,10 @@ Blockly.JavaScript['ai_isIndexExtendend'] = function (block) {
         var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
 
         //get the code and push it to the renderer
+        console.log(code);
+
+        code = `window.actionFunction = function(landmarks) { ${code} };`;
+        eval(code);
     };
 
     handler.prototype._setBlockly = function () {
@@ -61,24 +51,9 @@ Blockly.JavaScript['ai_isIndexExtendend'] = function (block) {
 
     w.MediaPipeHandler = new handler();
 
-}(window));
+}(window, jQuery));
 
-let isFingerPointing = function(landmarks) {
-    return (landmarks[8].y < landmarks[6].y) &&
-        (landmarks[12].y > landmarks[10].y) &&
-        (landmarks[16].y > landmarks[14].y) && 
-        (landmarks[20].y > landmarks[18].y);
-};
-
-let isHandExtended = function (landmarks) {
-    return (landmarks[8].y < landmarks[6].y) &&
-        (landmarks[12].y < landmarks[10].y) &&
-        (landmarks[16].y < landmarks[14].y) && 
-        (landmarks[20].y < landmarks[18].y);
-}
-
-let actionFunction = function(landmarks) {
-};
+window.actionFunction = function(landmarks) { };
 
 const videoElement = document.getElementsByClassName('input_video')[0];
 const canvasElement = document.getElementsByClassName('output_canvas')[0];
@@ -95,7 +70,7 @@ function onResults(results) {
         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
         //drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
 
-        actionFunction(landmarks);
+        window.actionFunction(landmarks);
       }
     }
 
