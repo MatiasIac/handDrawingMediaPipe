@@ -23,7 +23,7 @@
         //get the code and push it to the renderer
         console.log(code);
 
-        code = `window.actionFunction = function(landmarks) { ${code} };`;
+        code = `window.actionFunction = function(landmarks, ctx) { ${code} };`;
         eval(code);
     };
 
@@ -57,24 +57,24 @@ window.actionFunction = function(landmarks) { };
 
 const videoElement = document.getElementsByClassName('input_video')[0];
 const canvasElement = document.getElementsByClassName('output_canvas')[0];
-const canvasCtx = canvasElement.getContext('2d');
+const ctx = canvasElement.getContext('2d');
 const messageContainer = document.getElementById('usermessage');
 
 function onResults(results) {
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+    ctx.save();
+    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
     
     if (results.multiHandLandmarks) {
       for (const landmarks of results.multiHandLandmarks) {
-        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
+        //drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
         //drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
 
-        window.actionFunction(landmarks);
+        window.actionFunction(landmarks, ctx);
       }
     }
 
-    canvasCtx.restore();
+    ctx.restore();
 }
 
 const hands = new Hands({locateFile: (file) => {
