@@ -134,15 +134,15 @@ Blockly.Blocks['ai_writeoncanvas'] = {
                 "type": "input_dummy"
               },
               {
-                "type": "field_number",
-                "name": "X",
-                "value": 0
+                "type": "field_variable",
+                "name": "X_VAR",
+                "variable": "finger_x"
               },
               {
-                "type": "field_number",
-                "name": "Y",
-                "value": 0
-              }
+                "type": "field_variable",
+                "name": "Y_VAR",
+                "variable": "finger_y"
+              },
             ],
             "inputsInline": true,
             "previousStatement": null,
@@ -156,10 +156,10 @@ Blockly.Blocks['ai_writeoncanvas'] = {
 
 Blockly.JavaScript['ai_writeoncanvas'] = function(block) {
     var value_text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC);
-    var number_x = block.getFieldValue('X');
-    var number_y = block.getFieldValue('Y');
-    
-    var code = `ctx.fillText(${value_text},${number_x}, ${number_y});\n`;
+    var variable_x_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('X_VAR'), Blockly.Variables.NAME_TYPE);
+    var variable_y_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('Y_VAR'), Blockly.Variables.NAME_TYPE);
+  
+    var code = `ctx.fillText(${value_text},${variable_x_var}, ${variable_y_var});\n`;
     return code;
 };
 
@@ -271,5 +271,132 @@ Blockly.Blocks['ai_fontsize'] = {
 Blockly.JavaScript['ai_fontsize'] = function(block) {
     var number_size = block.getFieldValue('SIZE');
     var code = `ctx.font = "${number_size}px Arial";\n`;
+    return code;
+};
+
+Blockly.Blocks['ai_getcoord'] = {
+    init: function () {
+        this.jsonInit({
+            "type": "ai_getcoord",
+            "message0": "Save X value into %1 and save Y value into %2 from finger joint %3",
+            "args0": [
+              {
+                "type": "field_variable",
+                "name": "X_VAR",
+                "variable": "finger_x"
+              },
+              {
+                "type": "field_variable",
+                "name": "Y_VAR",
+                "variable": "finger_y"
+              },
+              {
+                "type": "field_dropdown",
+                "name": "finger_joint",
+                "options": [
+                  [
+                    "0",
+                    "0"
+                  ],
+                  [
+                    "1",
+                    "1"
+                  ],
+                  [
+                    "2",
+                    "2"
+                  ],
+                  [
+                    "3",
+                    "3"
+                  ],
+                  [
+                    "4",
+                    "4"
+                  ],
+                  [
+                    "5",
+                    "5"
+                  ],
+                  [
+                    "6",
+                    "6"
+                  ],
+                  [
+                    "7",
+                    "7"
+                  ],
+                  [
+                    "8",
+                    "8"
+                  ],
+                  [
+                    "9",
+                    "9"
+                  ],
+                  [
+                    "10",
+                    "10"
+                  ],
+                  [
+                    "11",
+                    "11"
+                  ],
+                  [
+                    "12",
+                    "12"
+                  ],
+                  [
+                    "13",
+                    "13"
+                  ],
+                  [
+                    "14",
+                    "14"
+                  ],
+                  [
+                    "15",
+                    "15"
+                  ],
+                  [
+                    "16",
+                    "16"
+                  ],
+                  [
+                    "17",
+                    "17"
+                  ],
+                  [
+                    "18",
+                    "18"
+                  ],
+                  [
+                    "19",
+                    "19"
+                  ],
+                  [
+                    "20",
+                    "20"
+                  ]
+                ]
+              }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 180,
+            "tooltip": "",
+            "helpUrl": ""
+        });
+    }
+};
+
+Blockly.JavaScript['ai_getcoord'] = function(block) {
+    var variable_x_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('X_VAR'), Blockly.Variables.NAME_TYPE);
+    var variable_y_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('Y_VAR'), Blockly.Variables.NAME_TYPE);
+    var dropdown_finger_joint = block.getFieldValue('finger_joint');
+    
+    var code = `${variable_x_var} = landmarks[${dropdown_finger_joint}].x;\n`;
+    code += `${variable_y_var} = landmarks[${dropdown_finger_joint}].y;\n`;
+    
     return code;
 };

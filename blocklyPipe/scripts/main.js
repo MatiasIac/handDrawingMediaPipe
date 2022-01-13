@@ -47,6 +47,8 @@
             },
             trashcan: true
         });
+        
+        Blockly.JavaScript.init(this.workspace);
     };
 
     w.MediaPipeHandler = new handler();
