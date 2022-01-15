@@ -115,7 +115,7 @@ Blockly.Blocks['ai_consoleout'] = {
 
 Blockly.JavaScript['ai_consoleout'] = function (block) {
     var value_name = Blockly.JavaScript.valueToCode(block, 'NAME', Blockly.JavaScript.ORDER_ATOMIC);
-    var code = `console.log(${value_name});\n`;
+    var code = `messageContainer.innerText = ${value_name};\n`;
     return code;
 };
 
@@ -241,6 +241,7 @@ Blockly.Blocks['ai_setcontextcolor'] = {
 Blockly.JavaScript['ai_setcontextcolor'] = function(block) {
     var colour_color = block.getFieldValue('COLOR');
     var code = `ctx.fillStyle = '${colour_color}';\n`;
+    code += `ctxOverlay.fillStyle = '${colour_color}';\n`;
     return code;
 };
 
@@ -399,4 +400,56 @@ Blockly.JavaScript['ai_getcoord'] = function(block) {
     code += `${variable_y_var} = landmarks[${dropdown_finger_joint}].y;\n`;
     
     return code;
+};
+
+Blockly.Blocks['ai_clearrect'] = {
+  init: function () {
+      this.jsonInit({
+        "type": "ai_clearrect",
+        "message0": "Clear canvas",
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 345,
+        "tooltip": "",
+        "helpUrl": ""
+    });
+  }
+};
+
+Blockly.JavaScript['ai_clearrect'] = function(block) {
+  var code = 'clearCanvas();\n';
+  return code;
+};
+
+Blockly.Blocks['ai_paintdot'] = {
+  init: function () {
+      this.jsonInit({
+        "type": "ai_paintdot",
+        "message0": "Paint at X %1 and Y %2",
+        "args0": [{
+            "type": "field_variable",
+            "name": "x_var",
+            "variable": "item"
+          },
+          {
+            "type": "field_variable",
+            "name": "y_var",
+            "variable": "item"
+          }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 230,
+        "tooltip": "",
+        "helpUrl": ""
+      });
+  }
+};
+
+Blockly.JavaScript['ai_paintdot'] = function(block) {
+  var variable_x_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('x_var'), Blockly.Variables.NAME_TYPE);
+  var variable_y_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('y_var'), Blockly.Variables.NAME_TYPE);
+
+  var code = `putDotOnCanvas(${variable_x_var}, ${variable_y_var});\n`;
+  return code;
 };

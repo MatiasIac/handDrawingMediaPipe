@@ -4,6 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <link rel="stylesheet" href="./styles/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -14,10 +15,21 @@
   <title>Blockly Pipe</title>
 
   <body>
-    <input type="button" id="startButton" value="Run">
+    <button type="button" id="startButton">
+        <i class="fas fa-play-circle"></i>
+        <span>Run</span>
+    </button>
+    <button type="button" id="loadButton">
+        <i class="fas fa-upload"></i>
+        <span>Load</span>
+    </button>
+    <button type="button" id="saveButton">
+        <i class="fas fa-clipboard"></i>
+        <span>Save To Clipboard</span>
+    </button>
 
     <div style="width: 100%; height: 500px;">
-      <div id="blocklyDiv" style="width: 50%; height: 495px; display: inline-block;"></div>
+      <div id="blocklyDiv" class="blockly-div"></div>
 
       <div style="width: 50%; display: inline;">
         <video class="input_video"></video>
@@ -358,11 +370,27 @@
         <sep></sep>
         <category name="Canvas" colour="%{BKY_PROCEDURES_HUE}">
             <block type="ai_setcontextcolor"></block>
+            <block type="ai_clearrect"></block>
             <block type="ai_fontsize"></block>
+            <block type="ai_paintdot"></block>
             <block type="ai_writeoncanvas"></block>
         </category>
     </xml>
 
+    <div class="gray-overlay"></div>
+    <div class="loader-popup">
+        <h1>Paste XML script</h1>
+        <textarea id="scriptloader" rows="15" cols="60"></textarea>
+        <br/>
+        <button type="button" id="loadScript">
+            <i class="fas fa-upload"></i>
+            <span>Load</span>
+        </button>
+        <button type="button" id="cancelScript" value="Cancel">
+            <i class="fas fa-times"></i>
+            <span>Cancel</span>
+        </button>
+    </div>
   </body>
 
   <script src="./scripts/functionsRepository.js"></script>
