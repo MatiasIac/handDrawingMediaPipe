@@ -1,0 +1,106 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="URGI|K3IO}j+JH)Ob=+^">finger_x</variable>
+    <variable id="Z,LtEjRD!xIU|s*7g__|">finger_y</variable>
+  </variables>
+  <block type="ai_showhandskeleton" id="py(UyzC?_wsV7B=GGPR@" x="50" y="70">
+    <field name="COLOR">#ff0000</field>
+    <next>
+      <block type="variables_set" id="%N3Bc6f0L)Sbccp^=(;l">
+        <field name="VAR" id="URGI|K3IO}j+JH)Ob=+^">finger_x</field>
+        <value name="VALUE">
+          <block type="math_number" id="*g$mRyUA*`5phsIhI^,X">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="?|Ne-N=U@t?aaiA^Hu*)">
+            <field name="VAR" id="Z,LtEjRD!xIU|s*7g__|">finger_y</field>
+            <value name="VALUE">
+              <block type="math_number" id="-WJV]AN7wfifs!M79Wls">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+            <next>
+              <block type="controls_if" id="P91B#SADpDl|J6Yu897T">
+                <value name="IF0">
+                  <block type="ai_isIndexExtendend" id="}%4KoLPhuRTeKK.jLu5."></block>
+                </value>
+                <statement name="DO0">
+                  <block type="ai_getcoord" id="^9anGM?+iIG8^hIl_u[O">
+                    <field name="X_VAR" id="URGI|K3IO}j+JH)Ob=+^">finger_x</field>
+                    <field name="Y_VAR" id="Z,LtEjRD!xIU|s*7g__|">finger_y</field>
+                    <field name="finger_joint">8</field>
+                    <next>
+                      <block type="math_change" id="1[T5xsg!MX~h!Tn%a::Z">
+                        <field name="VAR" id="URGI|K3IO}j+JH)Ob=+^">finger_x</field>
+                        <value name="DELTA">
+                          <shadow type="math_number" id="nf{A07~jO_w]=!Nw7A0R">
+                            <field name="NUM">1</field>
+                          </shadow>
+                          <block type="math_arithmetic" id="c5/BHi9Ujg$_V4Q!Hm:L">
+                            <field name="OP">MULTIPLY</field>
+                            <value name="A">
+                              <shadow type="math_number" id="jU%B+xl2-ukNE3K|r^`w">
+                                <field name="NUM">1</field>
+                              </shadow>
+                              <block type="variables_get" id="pv6e$R4q:n%#?T[IjM0~">
+                                <field name="VAR" id="URGI|K3IO}j+JH)Ob=+^">finger_x</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <shadow type="math_number" id="E8%YiXusTJ+%LRP,j7PT">
+                                <field name="NUM">640</field>
+                              </shadow>
+                            </value>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="math_change" id="|-T!ejJ6b90K)J$hr9eW">
+                            <field name="VAR" id="Z,LtEjRD!xIU|s*7g__|">finger_y</field>
+                            <value name="DELTA">
+                              <shadow type="math_number">
+                                <field name="NUM">1</field>
+                              </shadow>
+                              <block type="math_arithmetic" id="MD]_rN+rR$8h-i?z~=[=">
+                                <field name="OP">MULTIPLY</field>
+                                <value name="A">
+                                  <shadow type="math_number">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                  <block type="variables_get" id="6!eAh!08eZY{J@MrjbQ*">
+                                    <field name="VAR" id="Z,LtEjRD!xIU|s*7g__|">finger_y</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <shadow type="math_number" id=";r$R5w9S_dRS;VtWlgUM">
+                                    <field name="NUM">480</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="ai_setcontextcolor" id="V3{Ved;nlc**qcOb}{W#">
+                                <field name="COLOR">#ff9900</field>
+                                <next>
+                                  <block type="ai_paintdot" id="J.#*WtVYs*j@A4b}lyd:">
+                                    <field name="x_var" id="URGI|K3IO}j+JH)Ob=+^">finger_x</field>
+                                    <field name="y_var" id="Z,LtEjRD!xIU|s*7g__|">finger_y</field>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>
