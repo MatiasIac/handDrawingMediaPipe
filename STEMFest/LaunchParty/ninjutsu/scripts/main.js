@@ -7,30 +7,30 @@ var powerUpJuke = null;
 var hurtJuke = null;
 
 game.init = function () {
-    jsGFwk.ResourceManager.addGraphic({ name: "main", source: "games/images/sprites.png" });
+    jsGFwk.ResourceManager.addGraphic({ name: "main", source: "./images/sprites.png" });
 
     var sound = {};
-    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "games/fx/coin.ogg" };
-    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "games/fx/coin.mp3" };
-    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "games/fx/coin.wav" };
+    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "./fx/coin.ogg" };
+    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "./fx/coin.mp3" };
+    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "./fx/coin.wav" };
     jsGFwk.ResourceManager.addSound({ name: "coin", sources: sound});
 
     sound = {};
-    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "games/fx/powerup.ogg" };
-    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "games/fx/powerup.mp3" };
-    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "games/fx/powerup.wav" };
+    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "./fx/powerup.ogg" };
+    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "./fx/powerup.mp3" };
+    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "./fx/powerup.wav" };
     jsGFwk.ResourceManager.addSound({ name: "powerup", sources: sound});
 
     sound = {};
-    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "games/fx/hurt.ogg" };
-    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "games/fx/hurt.mp3" };
-    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "games/fx/hurt.wav" };
+    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "./fx/hurt.ogg" };
+    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "./fx/hurt.mp3" };
+    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "./fx/hurt.wav" };
     jsGFwk.ResourceManager.addSound({ name: "hurt", sources: sound});
 
     sound = {};
-    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "games/fx/music.ogg" };
-    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "games/fx/music.mp3" };
-    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "games/fx/music.mp3" };
+    sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "./fx/music.ogg" };
+    sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "./fx/music.mp3" };
+    sound[jsGFwk.ResourceManager.sounds.format.wave] = { source: "./fx/music.mp3" };
     jsGFwk.ResourceManager.addSound({ name: "music", sources: sound});
 
     //load all question images

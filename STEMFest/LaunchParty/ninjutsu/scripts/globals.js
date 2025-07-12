@@ -7,7 +7,7 @@ var MAXDY    = 60;
 var ACCEL    = 1/2;
 var FRICTION = 1/6;
 var IMPULSE  = 3500;
-var ENEMY_DEAD_Y_LINE = game.configurations.height - (TILE * 2);
+var ENEMY_DEAD_Y_LINE = 600 - (TILE * 2);
 
 var bound = function(x, min, max) {
     return Math.max(min, Math.min(max, x));

@@ -10,7 +10,7 @@
 
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 
-    <body border="0" style="padding: 0; margin: 0;">
+    <body style="padding: 0; margin: 0; border: 0;">
 
         <div style="width: 100%; height: 500px;">
             <div id="blocklyDiv" class="blockly-div"></div>
@@ -277,79 +277,9 @@
             <category name="Variables" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
         </xml>
 
-        <canvas id="canvas" width="480px" height="600px"></canvas>
+        <iframe src="./ninjutsu/index.html" id="frame1" name="frame1" width="480" height="600" scrolling="no" marginheight="1" marginwidth="1" frameborder="0" seamless="seamless"></iframe>
+        
     </body>
 
     <script src="scripts/main.js"></script>
-
-    <script lang="Javascript" src="framework/jsGFwk.js"></script>
-    <script lang="Javascript" src="framework/jsGFwk2dFastAnimation.js"></script>
-	<script lang="Javascript" src="framework/jsGFwkContainer.js"></script>
-	<script lang="Javascript" src="framework/jsGFwkIO.js"></script>
-	<script lang="Javascript" src="framework/jsGFwkCollisions.js"></script>
-	<script lang="Javascript" src="framework/jsGFwkRM.js"></script>
-	<script lang="Javascript" src="framework/jsGFwkSprites.js"></script>
-	<script lang="Javascript" src="framework/jsGFwkFonts.js"></script>
-    <script lang="Javascript" src="framework/jsGFwkScenes.js"></script>
-    <script lang="Javascript" src="framework/jsGFwkTimers.js"></script>
-    <script lang="Javascript" src="framework/jsGFwkJukebox.js"></script>
-    <script lang="Javascript" src="framework/jsGFwkWebStorage.js"></script>
-    <script lang="Javascript" src="framework/jsGFwkTextWriter.js"></script>
-
-    <script src="games/globals.js"></script>
-    <script src="games/physics.js"></script>
-    <script src="games/map.js"></script>
-    <script src="games/gameController.js"></script>
-    <script src="games/player.js"></script>
-    <script src="games/main.js"></script>
-
-    <script lang="javascript">
-        var game = { 
-            configurations: {
-                title: "",
-                height: 600,
-                width: 480
-            },
-            init: function() { }
-        };
-
-        jsGFwk.settings.canvas = "canvas";
-        jsGFwk.settings.clearColor = "rgb(0, 0, 0)";
-        jsGFwk.settings.frameRate = 1000 / 60;
-        
-        jsGFwk.include("FastAnimation");
-        jsGFwk.include("Container");
-        jsGFwk.include("IO");
-        jsGFwk.include("Collisions");
-        jsGFwk.include("ResourceManager");
-        jsGFwk.include("Sprites");
-        jsGFwk.include("Fonts");
-        jsGFwk.include("Scenes");
-        jsGFwk.include("Timer");
-        jsGFwk.include("Jukebox");
-        jsGFwk.include("Storage");
-
-        game.init();
-
-        var fClick = function () {
-            jsGFwk.start();
-            c.removeEventListener('click', fClick, true);
-        };
-
-        var c = document.getElementById('canvas');
-        var ctx = c.getContext('2d');
-        var logo = new Image();
-
-        logo.onload = function () {
-            ctx.drawImage(logo, 150, 262, 180, 75);
-            ctx.fillStyle = "black";
-            ctx.font = "16pt arial";
-            ctx.fillText("Click To Start", 175, 380);
-        }
-
-        logo.src = 'games/images/jsGFwkLogo.png';
-
-        c.addEventListener('click', fClick, true);
-        
-    </script>
 </html>
