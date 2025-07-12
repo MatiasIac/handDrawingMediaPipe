@@ -36,20 +36,21 @@ body {
 }
 
 button {
-    font-size: 13pt;
+    font-size: 11pt;
     margin: 5px;
     cursor: pointer;
-    background-color: #dfe0fb;
-    border: 1px solid #ccdbf1;
+    background-color: #dfeffb;
+    border: 2px solid #cbd7e7;
     padding: 5px;
     min-width: 100px;
-    border-radius: 6px;
+    border-radius: 4px;
+    font-family: arial black;
 }
 
 .blockly-div {
     min-width: calc(100vw - 480px); 
     max-width: 50%; 
-    height: 100vh; 
+    height: calc(100vh - 50px); 
     display: inline-block;
 }
 

@@ -2,6 +2,16 @@
 
     var handler = function () {
         this._setBlockly();
+        this._attachEvents();
+    };
+
+    handler.prototype._attachEvents = function () {
+        var self = this;
+
+        $('#startButton').on('click', function () {
+            self._run();
+        });
+
     };
 
     handler.prototype._run = function () {
@@ -13,8 +23,8 @@
         console.log(code);
         console.log(xmlText);
 
-        //code = `window.actionFunction = function(landmarks, ctx) { ${code} };`;
-        //eval(code);
+        code = `try { ${code} } catch(e) { console.log(e); } `;
+        eval(code);
     };
 
     handler.prototype._setBlockly = function () {
@@ -41,6 +51,6 @@
         Blockly.JavaScript.init(this.workspace);
     };
 
-    w.MediaPipeHandler = new handler();
+    w.handler = new handler();
 
 }(window, jQuery));

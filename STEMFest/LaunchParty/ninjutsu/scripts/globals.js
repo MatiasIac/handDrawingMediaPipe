@@ -1,12 +1,14 @@
 var MAP      = { tw: 24, th: 30 };
 var TILE     = 20;
 var METER    = TILE;
-var GRAVITY  = 7.8 * 6;
+var GRAVITY  = 46.8;
 var MAXDX    = 15; 
 var MAXDY    = 60;
 var ACCEL    = 1/2;
 var FRICTION = 1/6;
 var IMPULSE  = 3500;
+var TOTALENEMIES = 5;
+var MAXCOINS = 5;
 var ENEMY_DEAD_Y_LINE = 600 - (TILE * 2);
 
 var bound = function(x, min, max) {

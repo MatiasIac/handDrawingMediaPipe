@@ -7,7 +7,7 @@ var physics = (function () {
         this.y = 32,
         this.dx = 0,
         this.dy = 0,
-        this.gravity = METER * GRAVITY;
+        //this.gravity = METER * GRAVITY;
         this.maxdx = METER * MAXDX;
         this.maxdy = METER * MAXDY;
         this.impulse = METER * IMPULSE;
@@ -28,7 +28,7 @@ var physics = (function () {
             accel = this.accel * (falling ? 0.5 : 1);
   
         this.ddx = 0;
-        this.ddy = this.gravity;
+        this.ddy = METER * GRAVITY; //this.gravity;
     
         if (this.left) {
             this.ddx = this.ddx - accel;

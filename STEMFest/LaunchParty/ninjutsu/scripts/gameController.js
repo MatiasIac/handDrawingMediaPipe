@@ -1,7 +1,4 @@
 var gameController = {
-    totalEnemies: 5,
-    maxCoins: 5,
-
     points: 0,
 
     id: "gameController",
@@ -19,7 +16,7 @@ var gameController = {
 
         this._enemySpawnTimer = new jsGFwk.Timer({
             action: function () {
-                if (enemyContainer.length() < self.totalEnemies) enemyContainer.cloneObject();
+                if (enemyContainer.length() < TOTALENEMIES) enemyContainer.cloneObject();
             }, tickTime: 0.5
         });
 
@@ -52,7 +49,7 @@ var gameController = {
 
     _dropCoins: function () {
         coinContainer.clearAll();
-        for (var i = 0; i < this.maxCoins; i++) {
+        for (var i = 0; i < MAXCOINS; i++) {
             coinContainer.cloneObject();
         }
 
