@@ -93,3 +93,35 @@ Blockly.JavaScript['game_enemies'] = function (block) {
     const code = `frame1.TOTALENEMIES = ${text_enemies};`;
     return code;
 };
+
+Blockly.Blocks['game_reloadspeed'] = {
+    init: function () {
+        this.jsonInit({
+            "type": "game_reloadspeed",
+            "tooltip": "Defines the shuriken reload speed",
+            "helpUrl": "",
+            "message0": "Set world reload speed to %1 %2",
+            "args0": [
+                {
+                "type": "field_number",
+                "name": "SHURIKENRELOADSPEED",
+                "value": 0.001,
+                "min": 0.001,
+                "max": 0.05,
+                "precision": 0.001
+                },
+                {
+                "type": "input_dummy",
+                "name": "NAME"
+                }
+            ],
+            "colour": 145
+        });
+    }
+};
+
+Blockly.JavaScript['game_reloadspeed'] = function (block) {
+    const text_reloadSpeed = block.getFieldValue('SHURIKENRELOADSPEED');
+    const code = `frame1.player.reloadSpeed = ${text_reloadSpeed};`;
+    return code;
+};

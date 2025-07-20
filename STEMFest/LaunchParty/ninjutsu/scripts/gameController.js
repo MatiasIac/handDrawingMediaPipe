@@ -52,8 +52,6 @@ var gameController = {
         for (var i = 0; i < MAXCOINS; i++) {
             coinContainer.cloneObject();
         }
-
-        //drop coins sound
     },
 
     update: function (delta) {

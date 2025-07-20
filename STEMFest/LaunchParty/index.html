@@ -13,8 +13,8 @@
     <body style="padding: 0; margin: 0; border: 0;">
 
         <button type="button" id="startButton">
-            <i class="fas fa-play-circle"></i>
-            <span>Run</span>
+            <i class="fas fa-play"></i>
+            <span>Apply</span>
         </button>
 
         <div style="width: 100%; height: 500px;">
@@ -27,6 +27,7 @@
         <script src="scripts/msg/js/en.js"></script>
 
         <xml id="toolbox" style="display: none">
+            <!--
             <category name="Logic" colour="%{BKY_LOGIC_HUE}">
                 <block type="controls_if"></block>
                 <block type="logic_compare"></block>
@@ -281,10 +282,12 @@
             </category>
             <category name="Variables" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
             <sep></sep>
-            <category name="Game" colour="%{BKY_PROCEDURES_HUE}">
+            -->
+            <category name="Game Setup" colour="%{BKY_PROCEDURES_HUE}">
                 <block type="game_gavity"></block>
                 <block type="game_coins"></block>
                 <block type="game_enemies"></block>
+                <block type="game_reloadspeed"></block>
             </category>
         </xml>
 
