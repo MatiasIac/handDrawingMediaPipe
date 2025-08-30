@@ -191,21 +191,23 @@ function roundedRectPath(x, y, w, h, r) {
 }
 
 function drawWall(rect) {
+  // Bright green vector-style line walls
   const { x, y, w, h } = wallPx(rect);
-  const pad = Math.max(2, Math.min(w, h) * 0.05);
-  // Base
-  const grad = ctx.createLinearGradient(x, y, x + w, y + h);
-  grad.addColorStop(0, '#2a364a');
-  grad.addColorStop(1, '#182131');
-  ctx.fillStyle = grad;
-  ctx.strokeStyle = '#6fb1ff22';
-  ctx.lineWidth = 2;
-  ctx.shadowColor = '#0008';
-  ctx.shadowBlur = 10;
-  roundedRectPath(x + pad, y + pad, w - pad * 2, h - pad * 2, Math.min(w, h) * 0.15);
-  ctx.fill();
+  const neon = '#00ff66';
+  ctx.save();
+  ctx.lineWidth = Math.max(2, Math.min(w, h) * 0.15);
+  ctx.strokeStyle = neon;
+  ctx.shadowColor = neon;
+  ctx.shadowBlur = 12;
+  // Outline only
+  ctx.strokeRect(x, y, w, h);
+  // Inner crisp stroke for brightness
   ctx.shadowBlur = 0;
-  ctx.stroke();
+  ctx.globalAlpha = 0.9;
+  ctx.lineWidth = Math.max(1, Math.min(w, h) * 0.07);
+  ctx.strokeStyle = '#ccffdd';
+  ctx.strokeRect(x, y, w, h);
+  ctx.restore();
 }
 
 class Bullet {
@@ -241,15 +243,16 @@ class Bullet {
   }
   draw() {
     if (!this.alive) return;
-    ctx.save();
-    ctx.shadowColor = this.color + 'aa';
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, TAU);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.restore();
+  ctx.save();
+  ctx.shadowColor = this.color + 'aa';
+  ctx.shadowBlur = 10;
+  ctx.strokeStyle = this.color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(this.x, this.y, this.r, 0, TAU);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.restore();
   }
 }
 
@@ -311,45 +314,23 @@ class Tank {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(this.angle);
-    // Shadow
-    ctx.shadowColor = '#0008';
+    // Vector-style bright line tank (no fills/gradients)
+    ctx.shadowColor = this.color;
     ctx.shadowBlur = 10;
-    // Hull
     const hullW = r * 2.1, hullH = r * 1.3;
-    roundedRectPath(-hullW/2, -hullH/2, hullW, hullH, r * 0.3);
-    const grad = ctx.createLinearGradient(-hullW/2, -hullH/2, hullW/2, hullH/2);
-    grad.addColorStop(0, lighten(this.color, 0.25));
-    grad.addColorStop(1, this.color);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#ffffff22';
-    ctx.stroke();
-    // Tracks
-    ctx.strokeStyle = '#00000033';
     ctx.lineWidth = 3;
-    for (let i = -3; i <= 3; i += 3) {
-      ctx.beginPath();
-      ctx.moveTo(-hullW/2 + 6, i);
-      ctx.lineTo(hullW/2 - 6, i);
-      ctx.stroke();
-    }
-    // Turret base
-    ctx.fillStyle = lighten(this.color, 0.05);
+    ctx.strokeStyle = this.color;
+    // Hull outline
+    roundedRectPath(-hullW/2, -hullH/2, hullW, hullH, r * 0.3);
+    ctx.stroke();
+    // Turret ring
     ctx.beginPath();
     ctx.arc(0, 0, r * 0.55, 0, TAU);
-    ctx.fill();
-    // Barrel
-    ctx.fillStyle = lighten(this.color, 0.15);
-    roundedRectPath(r * 0.3, -r * 0.15, r * 1.2, r * 0.3, r * 0.15);
-    ctx.fill();
-    // Nose highlight
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle = '#ffffff33';
-    roundedRectPath(-hullW/2, -hullH*0.25, hullW * 0.5, hullH * 0.5, r * 0.25);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.stroke();
+    // Barrel as stroked rounded rectangle
+    roundedRectPath(r * 0.3, -r * 0.12, r * 1.2, r * 0.24, r * 0.12);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
     ctx.restore();
   }
 }
@@ -506,23 +487,29 @@ function handleCombat(dt) {
 }
 
 function drawExplosions(dt) {
+  // Vector rings instead of filled gradients
   const remain = [];
   for (const ex of explosions) {
     ex.t += dt;
     if (ex.t < ex.dur) {
       remain.push(ex);
       const k = ex.t / ex.dur;
-      const R = 20 + 60 * k;
       ctx.save();
-      ctx.globalAlpha = 1 - k;
-      const grad = ctx.createRadialGradient(ex.x, ex.y, R * 0.1, ex.x, ex.y, R);
-      grad.addColorStop(0, '#ffd29eaa');
-      grad.addColorStop(0.6, '#ff9d4daa');
-      grad.addColorStop(1, '#ff5a5a00');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(ex.x, ex.y, R, 0, TAU);
-      ctx.fill();
+      const neon = '#00ff66';
+      ctx.strokeStyle = neon;
+      ctx.shadowColor = neon;
+      ctx.shadowBlur = 12;
+      // Draw a few expanding rings
+      for (let i = 0; i < 3; i++) {
+        const R = 10 + 22 * k + i * 8;
+        const a = Math.max(0, 0.9 - k - i * 0.18);
+        if (a <= 0) continue;
+        ctx.globalAlpha = a;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(ex.x, ex.y, R, 0, TAU);
+        ctx.stroke();
+      }
       ctx.restore();
     }
   }
@@ -570,31 +557,21 @@ function frame(t) {
 requestAnimationFrame(frame);
 
 function drawBackdrop() {
+  // Pure black background (no gradients)
   const W = canvas.clientWidth, H = canvas.clientHeight;
-  // Subtle glow backdrop
-  const g = ctx.createRadialGradient(W*0.7, H*0.2, 60, W*0.7, H*0.2, Math.max(W, H));
-  g.addColorStop(0, '#0a1220');
-  g.addColorStop(1, '#060a12');
-  ctx.fillStyle = g;
+  ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
-
-  // Thin grid
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#6fb1ff11';
-  const step = Math.max(32, Math.floor(Math.min(W, H) / 20));
-  ctx.beginPath();
-  for (let x = 0; x <= W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-  for (let y = 0; y <= H; y += step) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-  ctx.stroke();
 }
 
 function drawVignette() {
+  // CRT scanlines overlay (no gradient)
   const W = canvas.clientWidth, H = canvas.clientHeight;
-  const v = ctx.createLinearGradient(0, 0, 0, H);
-  v.addColorStop(0, '#00000055');
-  v.addColorStop(0.08, '#00000000');
-  v.addColorStop(0.92, '#00000000');
-  v.addColorStop(1, '#00000055');
-  ctx.fillStyle = v;
-  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.fillStyle = '#000';
+  ctx.globalAlpha = 0.14; // line darkness
+  const step = 2; // every 2px
+  for (let y = 0; y < H; y += step) {
+    ctx.fillRect(0, y, W, 1);
+  }
+  ctx.restore();
 }
