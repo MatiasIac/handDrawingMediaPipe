@@ -1,0 +1,41 @@
+body {
+    background-color: #1c3973;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+video {
+    border: 2px solid #80b1ed;
+    border-radius: 5px;
+    box-shadow: 2px 2px 8px 4px rgba(0,0,0,0.44);
+    -webkit-box-shadow: 2px 2px 8px 4px rgba(0,0,0,0.44);
+    -moz-box-shadow: 2px 2px 8px 4px rgba(0,0,0,0.44);
+}
+
+.video-container {
+    margin: 10px;
+    width: 300px;
+    float: left;
+}
+
+.game-container {
+    text-align: center;
+    position: absolute;
+    top: 70px;
+    left: calc(50% - 400px);
+}
+
+.instruction-container {
+    float: right;
+    text-align: right;
+    top: 10px;
+    position: absolute;
+    right: 10px;
+}
+
+.instruction-container img {
+    border-radius: 28px;
+    border: 1px solid #e3dced;
+    border-width: 1px;
+}

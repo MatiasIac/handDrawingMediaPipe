@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>DinoCV</title>
+        <link rel="stylesheet" type="text/css" href="./css/style.css">
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js" type="text/javascript"></script>
+        <script src="./scripts/jsgfwk-bundle.js"></script>
+
+        <script src="./scripts/globals.js"></script>
+        <script src="./scripts/background.js"></script>
+        <script src="./scripts/enemyController.js"></script>
+        <script src="./scripts/ptero.js"></script>
+        <script src="./scripts/cactus.js"></script>
+        <script src="./scripts/score.js"></script>
+        <script src="./scripts/dino.js"></script>
+        <script src="./scripts/tfsPredictor.js"></script>
+    </head>
+    
+    <body>
+        
+        <div class="video-container">
+            <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
+        </div>
+        <div class="game-container">
+            <canvas id="canvas" width="600" height="100"></canvas>
+        </div>
+        <div class="instruction-container">
+            <img src="dinoInstructions.png" width="40%">
+        </div>
+    </body>
+
+    <script>
+        const game = new jsGFwk.Engine();
+        const animator = new jsGFwk.Animator2D();
+        const collisions = new jsGFwk.Collisions();
+        const resourceManager = new jsGFwk.ResourcesManager();
+        const sprites = new jsGFwk.Sprites();
+        const keyboardIO = new jsGFwk.KeyboardIO();
+        const scenesManager = new jsGFwk.ScenesManager();
+
+        game.settings.width = 600;
+        game.settings.height = 100;
+        game.settings.clearColor = "#E8E8E8";
+
+        game.include(animator);
+        game.include(collisions);
+        game.include(resourceManager);
+        game.include(sprites);
+        game.include(keyboardIO);
+        game.include(scenesManager);
+
+        const pteroContainer = jsGFwk.Containers.create("pteroCloner", ptero);
+        const cactusContainer = jsGFwk.Containers.create("cactusCloner", cactus);
+
+        jsGFwk.Fonts.buildFont("gameFont", "./font/PressStart2P-Regular.ttf");
+        resourceManager.addGraphic({ name: "graphics", source: "./sprites.png" });
+
+        scenesManager.create("main", [
+            background, 
+            score, 
+            pteroContainer, 
+            cactusContainer, 
+            enemyController, 
+            dino
+        ]);     
+
+        resourceManager.onResourcesLoadedCompleted = function () {
+
+            sprites.create({ id: "floor", 
+                graphic: resourceManager.GRAPHICS.graphics.image, 
+                left: 2, top: 54, width: 1200, height: 12 });
+
+            sprites.create({ id: "cactus", 
+                graphic: resourceManager.GRAPHICS.graphics.image, 
+                left: 228, top: 2, width: 34, height: 35 });
+
+            sprites.createCollection("running", resourceManager.GRAPHICS.graphics.image, [
+                {left: 936, top: 2, width: 44, height: 47},
+                {left: 980, top: 2, width: 44, height: 47}
+            ]);
+
+            sprites.createCollection("ducking", resourceManager.GRAPHICS.graphics.image, [
+                {left: 1112, top: 2, width: 59, height: 47},
+                {left: 1171, top: 2, width: 59, height: 47}
+            ]);
+
+            sprites.createCollection("idle", resourceManager.GRAPHICS.graphics.image, [
+                {left: 848, top: 2, width: 44, height: 47},
+                {left: 892, top: 2, width: 44, height: 47}
+            ]);
+
+            sprites.createCollection("die", resourceManager.GRAPHICS.graphics.image, [
+                {left: 1024, top: 2, width: 44, height: 47},
+                {left: 1068, top: 2, width: 44, height: 47}
+            ]);
+
+            sprites.createCollection("pterodactyl", resourceManager.GRAPHICS.graphics.image, [
+                {left: 134, top: 2, width: 46, height: 40},
+                {left: 180, top: 2, width: 46, height: 40}
+            ]);
+
+            sprites.SPRITES_BAG.idle.loop(true);
+            sprites.SPRITES_BAG.idle.reset();
+
+            sprites.SPRITES_BAG.running.loop(true);
+            sprites.SPRITES_BAG.running.reset();
+
+            sprites.SPRITES_BAG.ducking.loop(true);
+            sprites.SPRITES_BAG.ducking.reset();
+
+            sprites.SPRITES_BAG.die.loop(true);
+            sprites.SPRITES_BAG.die.reset();
+
+            sprites.SPRITES_BAG.pterodactyl.loop(true);
+            sprites.SPRITES_BAG.pterodactyl.reset();
+
+            scenesManager.scenes.main.activate();
+        };
+
+        game.start();
+
+        //tfs predictor
+        const video = document.getElementById('webcam');
+        const predDiv = document.getElementById('pred');
+
+        startPredictor();
+    </script>
+</html>

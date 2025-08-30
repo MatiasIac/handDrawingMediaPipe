@@ -1,0 +1,211 @@
+<html>
+    <head>
+        <title></title>
+    </head>
+    <script language="Javascript" src="framework/jsGFwk.js"></script>
+	<script language="Javascript" src="framework/jsGFwk2dFastAnimation.js"></script>
+	<script language="Javascript" src="framework/jsGFwkContainer.js"></script>
+	<script language="Javascript" src="framework/jsGFwkIO.js"></script>
+	<script language="Javascript" src="framework/jsGFwkCollisions.js"></script>
+	<script language="Javascript" src="framework/jsGFwkRM.js"></script>
+	<script language="Javascript" src="framework/jsGFwkSprites.js"></script>
+	<script language="Javascript" src="framework/jsGFwkScenes.js"></script>
+	<script language="Javascript" src="framework/jsGFwkFonts.js"></script>
+	<script language="Javascript" src="framework/jsGFwkEffects.js"></script>
+	<script language="Javascript" src="framework/jsGFwkGamepad.js"></script>
+    <script language="Javascript" src="framework/jsGFwkJukebox.js"></script>
+    <script language="Javascript" src="framework/jsGFwkTimers.js"></script>
+    <script language="Javascript" src="framework/jsGFwkDebugger.js"></script>
+
+    <style>
+
+        :root{
+            --space:#090b1a;
+            --deep:#050611;
+            --star:#cfd6ff;
+            --star2:#8aa0ff;
+            --highlight:#ffd89b;
+            --accent:#8fd3fe;
+        }
+
+        /* Page reset */
+        *{box-sizing:border-box}
+        html,body{height:100%}
+
+        body{
+            background: radial-gradient(1200px 600px at 50% 120%, var(--deep), var(--space));
+            overflow:hidden;
+            color:#e7ecff;
+            font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Inter,sans-serif;
+            margin-top: 0px;
+            text-align: center;
+            padding-top: 0;
+        }
+
+        /* Container that holds all layers */
+        .space{
+            position:fixed;
+            inset:0;
+            perspective:1000px;          /* subtle depth for planets */
+        }
+
+        /* --- Stars (3 parallax layers) ---------------------------------------- */
+        .stars, .stars2, .stars3{
+            position:absolute; inset:0;
+            background-repeat:repeat;
+            animation: drift linear infinite;
+        }
+
+        /* layer 1: tiny dense stars */
+        .stars{
+            background-image:
+            radial-gradient(1px 1px at 10px 20px, var(--star) 50%, transparent 51%),
+            radial-gradient(1px 1px at 130px 80px, var(--star) 50%, transparent 51%),
+            radial-gradient(1px 1px at 90px 140px, var(--star) 50%, transparent 51%),
+            radial-gradient(1px 1px at 170px 30px, var(--star) 50%, transparent 51%);
+            background-size: 200px 200px;
+            opacity:.9;
+            animation-duration: 120s;
+        }
+        /* layer 2: medium stars */
+        .stars2{
+            background-image:
+            radial-gradient(1.5px 1.5px at 40px 60px, var(--star2) 50%, transparent 51%),
+            radial-gradient(1.5px 1.5px at 180px 150px, var(--star2) 50%, transparent 51%),
+            radial-gradient(1.5px 1.5px at 90px 20px, var(--star2) 50%, transparent 51%),
+            radial-gradient(1.5px 1.5px at 160px 100px, var(--star2) 50%, transparent 51%);
+            background-size: 240px 240px;
+            opacity:.7;
+            animation-duration: 180s;
+        }
+        /* layer 3: sparse bright stars with twinkle */
+        .stars3{
+            background-image:
+            radial-gradient(2px 2px at 50px 120px, #fff 50%, transparent 51%),
+            radial-gradient(2px 2px at 200px 40px, #fff 50%, transparent 51%),
+            radial-gradient(2px 2px at 120px 200px, #fff 50%, transparent 51%),
+            radial-gradient(2px 2px at 20px 20px, #fff 50%, transparent 51%);
+            background-size: 260px 260px;
+            animation-duration: 240s;
+        }
+        @keyframes drift {
+            from { background-position: 0 0, 0 0, 0 0, 0 0; }
+            to   { background-position: 1000px 600px, -800px 500px, 600px -600px, -500px -400px; }
+        }
+
+        /* Twinkle overlay: soft flicker */
+        .twinkle{
+            position:absolute; inset:0;
+            background: radial-gradient(100% 120% at 50% 30%, transparent 60%, rgba(255,255,255,.07) 100%);
+            mix-blend-mode:screen;
+            animation: twinkle 5s ease-in-out infinite alternate;
+        }
+        @keyframes twinkle {
+            from { opacity:.15; } to { opacity:.35; }
+        }
+
+        /* --- Planets ----------------------------------------------------------- */
+        .planet{
+            position:absolute;
+            border-radius:50%;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,.45));
+        }
+
+        /* Gas giant (bottom-left) */
+        .planet.gas{
+            width: 380px; height: 380px; left:-120px; bottom:-80px; transform: translateZ(-80px);
+            background:
+            radial-gradient(120px 120px at 35% 40%, rgba(255,255,255,.25), transparent 60%),
+            repeating-linear-gradient(18deg,
+                #1b2547 0 14px, #223061 14px 28px, #2a3a78 28px 42px, #32448e 42px 56px);
+            animation: slow-rotate 90s linear infinite;
+        }
+
+        /* Ringed planet (right side) */
+        .planet.ringed{
+            width: 180px; height: 180px; right: 8vw; top: 15vh; transform: translateZ(-40px);
+            background:
+            radial-gradient(60px 60px at 40% 35%, rgba(255,255,255,.25), transparent 60%),
+            radial-gradient(circle at 55% 55%, #5cc6ff, #2a79a9 60%, #1b3c5e 100%);
+            animation: float 12s ease-in-out infinite;
+        }
+        .planet.ringed::before{
+            content:""; position:absolute; inset:-20px;
+            border-radius:50%;
+            background:
+            radial-gradient(closest-side, transparent 64%, rgba(255,255,255,.08) 66% 68%, transparent 70%),
+            conic-gradient(from 0deg, rgba(255,255,255,.15), rgba(255,255,255,0) 25% 75%, rgba(255,255,255,.15));
+            transform: rotateX(65deg) rotateZ(-10deg);
+            pointer-events:none;
+        }
+
+        /* Small moon orbiting an invisible center */
+        .orbit{
+            position:absolute; width: 320px; height: 320px; right: 22vw; top: 24vh;
+            transform: translateZ(-20px);
+            animation: orbit 18s linear infinite;
+        }
+        .orbit::before{
+            content:""; position:absolute; inset:0; border-radius:50%;
+            border: 1px dashed rgba(255,255,255,.08);
+        }
+        .moon{
+            position:absolute; width:22px; height:22px; top:50%; left:50%;
+            transform: translate(-50%, -160px);
+            border-radius:50%;
+            background:
+            radial-gradient(6px 6px at 35% 35%, rgba(255,255,255,.35), transparent 60%),
+            radial-gradient(circle at 60% 60%, #f0e7d0, #9f8f70);
+            box-shadow: 0 0 8px rgba(255,255,255,.25);
+        }
+
+        @keyframes slow-rotate { to { transform: translateZ(-80px) rotate(360deg); } }
+        @keyframes float { 0%{ transform: translateZ(-40px) translateY(0) } 50%{ transform: translateZ(-40px) translateY(-10px) } 100%{ transform: translateZ(-40px) translateY(0) } }
+        @keyframes orbit { to { transform: rotate(360deg); } }
+
+        /* Optional header content so you can see how it sits on top */
+        .content{
+            position:relative; z-index:5;
+            display:grid; place-items:center; height:100%;
+            text-align:center; padding:2rem;
+            backdrop-filter: blur(0px);
+        }
+        .title{
+            font-size:clamp(2rem, 4vw, 4rem);
+            letter-spacing:.03em;
+            text-shadow:0 4px 20px rgba(0,0,0,.6);
+        }
+        .subtitle{ opacity:.8; max-width:60ch; margin-top:.5rem }
+    </style>
+
+
+    <body>
+        <div class="space">
+            <div class="stars"></div>
+            <div class="stars2"></div>
+            <div class="stars3"></div>
+            <div class="twinkle"></div>
+        </div>
+
+        <main class="content" role="main">
+            <canvas id="canvas" width="300" height="700" style="cursor:none; border-radius: 10px;"></canvas>
+        </main>
+    </body>
+    <script src="scripts/spaceship.js"></script>
+    <script src="scripts/asteroids.js"></script>
+    <script src="scripts/aim.js"></script>
+    <script src="scripts/bullet.js"></script>
+    <script src="scripts/stats.js"></script>
+    <script src="scripts/starfield.js"></script>
+    <script src="scripts/cloud.js"></script>
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/aidcapsule.js"></script>
+    <script src="scripts/asteroidController.js"></script>
+    <script src="scripts/earth.js"></script>
+    <script src="scripts/hud.js"></script>
+    <script src="scripts/angryasteroid.js"></script>
+    <script src="scripts/globalController.js"></script>
+    <script src="scripts/powerup.js"></script>
+    <script src="scripts/endgame.js"></script>
+    <script src="scripts/main.js"></script>
+</html>
