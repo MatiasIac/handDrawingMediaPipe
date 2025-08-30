@@ -56,6 +56,108 @@ window.addEventListener('keyup', (e) => {
   }
 });
 
+// --- Simple inline SFX (base64 WAV via JS synthesis) ---
+let audioEnabled = false;
+window.addEventListener('pointerdown', () => { audioEnabled = true; }, { once: true });
+window.addEventListener('keydown', () => { audioEnabled = true; }, { once: true });
+
+function toBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+function makeWav(samples, sampleRate = 44100) {
+  const numChannels = 1;
+  const bitsPerSample = 16;
+  const blockAlign = numChannels * bitsPerSample / 8;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = samples.length * 2; // 16-bit
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  let off = 0;
+  function writeStr(s) { for (let i = 0; i < s.length; i++) view.setUint8(off++, s.charCodeAt(i)); }
+  function write16(v) { view.setUint16(off, v, true); off += 2; }
+  function write32(v) { view.setUint32(off, v, true); off += 4; }
+  writeStr('RIFF');
+  write32(36 + dataSize);
+  writeStr('WAVE');
+  writeStr('fmt ');
+  write32(16); // PCM chunk size
+  write16(1);  // PCM format
+  write16(numChannels);
+  write32(sampleRate);
+  write32(byteRate);
+  write16(blockAlign);
+  write16(bitsPerSample);
+  writeStr('data');
+  write32(dataSize);
+  // PCM data
+  const out = new Int16Array(buffer, 44);
+  out.set(samples);
+  return 'data:audio/wav;base64,' + toBase64(buffer);
+}
+function synthTone({ freq = 440, dur = 0.1, type = 'square', vol = 0.4, sampleRate = 44100 }) {
+  const N = Math.max(1, Math.floor(dur * sampleRate));
+  const data = new Int16Array(N);
+  const twoPI = Math.PI * 2;
+  const attack = Math.min(0.01, dur * 0.1);
+  const release = Math.min(0.03, dur * 0.2);
+  for (let i = 0; i < N; i++) {
+    const t = i / sampleRate;
+    const envA = Math.min(1, t / attack);
+    const envR = Math.min(1, (dur - t) / release);
+    const env = Math.max(0, Math.min(envA, envR));
+    const phase = twoPI * freq * t;
+    let s;
+    switch (type) {
+      case 'triangle': s = (2 / Math.PI) * Math.asin(Math.sin(phase)); break;
+      case 'sine': s = Math.sin(phase); break;
+      case 'square': default: s = Math.sign(Math.sin(phase)); break;
+    }
+    data[i] = (env * vol * 0.9) * 32767 * s;
+  }
+  return makeWav(data, sampleRate);
+}
+function synthSweep({ f1 = 800, f2 = 120, dur = 0.25, type = 'square', vol = 0.4, sampleRate = 44100 }) {
+  const N = Math.max(1, Math.floor(dur * sampleRate));
+  const data = new Int16Array(N);
+  const twoPI = Math.PI * 2;
+  const attack = Math.min(0.01, dur * 0.08);
+  const release = Math.min(0.05, dur * 0.3);
+  for (let i = 0; i < N; i++) {
+    const t = i / sampleRate;
+    const f = f1 + (f2 - f1) * (t / dur);
+    const envA = Math.min(1, t / attack);
+    const envR = Math.min(1, (dur - t) / release);
+    const env = Math.max(0, Math.min(envA, envR));
+    let s;
+    const phase = twoPI * f * t;
+    switch (type) {
+      case 'triangle': s = (2 / Math.PI) * Math.asin(Math.sin(phase)); break;
+      case 'sine': s = Math.sin(phase); break;
+      case 'square': default: s = Math.sign(Math.sin(phase)); break;
+    }
+    data[i] = (env * vol) * 32767 * s;
+  }
+  return makeWav(data, sampleRate);
+}
+const SFX = {
+  fire: synthTone({ freq: 880, dur: 0.07, type: 'square', vol: 0.35 }),
+  wall: synthTone({ freq: 1200, dur: 0.03, type: 'square', vol: 0.25 }),
+  boom: synthSweep({ f1: 500, f2: 80, dur: 0.22, type: 'triangle', vol: 0.45 }),
+};
+function playSFX(name) {
+  if (!audioEnabled) return;
+  const uri = SFX[name];
+  if (!uri) return;
+  const a = new Audio(uri);
+  a.play().catch(() => {});
+}
+
 // World + Maze (normalized 0..1 positions; scaled to canvas each frame)
 // A simple maze: borders, corridors and blocks
 const maze = [
@@ -229,12 +331,14 @@ class Bullet {
       if (segRectIntersects(p0, p1, x, y, w, h)) {
         this.alive = false;
         spawnExplosion(this.x, this.y);
+        playSFX('wall');
         return;
       }
     }
     // Out of bounds
     if (nx < 0 || ny < 0 || nx > canvas.clientWidth || ny > canvas.clientHeight) {
       this.alive = false;
+      playSFX('wall');
       return;
     }
     this.x = nx; this.y = ny;
@@ -279,6 +383,7 @@ class Tank {
     const b = new Bullet(bx, by, vx, vy, this.color);
     this.bullet = b;
     bullets.push(b);
+    playSFX('fire');
     return b;
   }
   updateMovement(dt, inputLeft, inputRight, inputForward, inputBackward) {
@@ -469,6 +574,7 @@ function handleCombat(dt) {
       if (b.color === enemy.color) {
         scores.e += 1; hud.eScore.textContent = scores.e;
         spawnExplosion(player.x, player.y);
+        playSFX('boom');
         b.alive = false;
         respawnLoser(player, enemy);
         return;
@@ -478,6 +584,7 @@ function handleCombat(dt) {
       if (b.color === player.color) {
         scores.p += 1; hud.pScore.textContent = scores.p;
         spawnExplosion(enemy.x, enemy.y);
+        playSFX('boom');
         b.alive = false;
         respawnLoser(enemy, player);
         return;
