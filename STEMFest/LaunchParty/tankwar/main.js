@@ -74,10 +74,10 @@ const maze = [
   { x: 0.42, y: 0.58, w: 0.02, h: 0.20 },
   { x: 0.74, y: 0.30, w: 0.02, h: 0.20 },
   // Center box with gaps
-  { x: 0.40, y: 0.35, w: 0.20, h: 0.02 },
-  { x: 0.40, y: 0.35, w: 0.02, h: 0.20 },
-  { x: 0.58, y: 0.35, w: 0.02, h: 0.20 },
-  { x: 0.40, y: 0.53, w: 0.20, h: 0.02 },
+  //{ x: 0.40, y: 0.35, w: 0.20, h: 0.02 },
+  //{ x: 0.40, y: 0.35, w: 0.02, h: 0.20 },
+  //{ x: 0.58, y: 0.35, w: 0.02, h: 0.20 },
+  //{ x: 0.40, y: 0.53, w: 0.20, h: 0.02 },
 ];
 
 function wallPx(rect) {
@@ -366,6 +366,9 @@ function lighten(hex, amt) {
 // Game state
 const player = new Tank(0, 0, '#5eead4'); // teal
 const enemy = new Tank(0, 0, '#f472b6');   // pink
+// Differentiate rotation speeds: AI rotates a bit slower than player
+player.turnSpeed = 2.6; // rad/s
+enemy.turnSpeed = 1.8;  // rad/s (slower)
 let bullets = [];
 let explosions = [];
 let scores = { p: 0, e: 0 };
@@ -384,6 +387,31 @@ function resetPositions() {
   enemy.bullet = null;
 }
 
+function respawnLoser(loser, winner) {
+  const W = canvas.clientWidth;
+  const H = canvas.clientHeight;
+  const corners = [
+    { x: 0.15 * W, y: 0.15 * H }, // top-left
+    { x: 0.85 * W, y: 0.15 * H }, // top-right
+    { x: 0.85 * W, y: 0.85 * H }, // bottom-right
+    { x: 0.15 * W, y: 0.85 * H }, // bottom-left
+  ];
+  // Pick the farthest corner from the winner's current position
+  let best = corners[0], bestD2 = -1;
+  for (const c of corners) {
+    const dx = c.x - winner.x, dy = c.y - winner.y;
+    const d2 = dx*dx + dy*dy;
+    if (d2 > bestD2) { bestD2 = d2; best = c; }
+  }
+  loser.x = best.x; loser.y = best.y;
+  // Face toward arena center to reduce spawn camping
+  loser.angle = angleTo(loser.x, loser.y, W * 0.5, H * 0.5);
+  // Clear bullets to avoid immediate chain hits
+  bullets = [];
+  player.bullet = null;
+  enemy.bullet = null;
+}
+
 function hasLineOfSight(ax, ay, bx, by) {
   const p0 = { x: ax, y: ay }, p1 = { x: bx, y: by };
   for (const m of maze) {
@@ -393,30 +421,55 @@ function hasLineOfSight(ax, ay, bx, by) {
   return true;
 }
 
-// Simple AI controller
-let aiTimer = 0;
-let aiState = 'chase';
-let aiTurnDir = 0; // -1..1
+// Simple AI controller — less random, obstacle-aware, delayed firing
+let aiHasSight = false;
+let aiHoldFireTimer = 0; // delay after acquiring line-of-sight before firing
+
+function distanceToWall(x, y, ang, maxDist = 200) {
+  const step = 6;
+  for (let d = 0; d <= maxDist; d += step) {
+    const px = x + Math.cos(ang) * d;
+    const py = y + Math.sin(ang) * d;
+    if (px < 0 || py < 0 || px > canvas.clientWidth || py > canvas.clientHeight) return d;
+    for (const m of maze) {
+      const { x: rx, y: ry, w: rw, h: rh } = wallPx(m);
+      if (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh) return d;
+    }
+  }
+  return maxDist;
+}
+
 function updateAI(dt) {
   const targetAng = angleTo(enemy.x, enemy.y, player.x, player.y);
   const diff = angDiff(enemy.angle, targetAng);
   const sight = hasLineOfSight(enemy.x, enemy.y, player.x, player.y);
 
-  if (sight) {
-    // Face player and move forward
-    const turn = clamp(diff, -1, 1);
-    enemy.updateMovement(dt, turn < 0, turn > 0, true, false);
-    if (enemy.canFire() && Math.abs(diff) < 0.2) {
-      enemy.fire();
-    }
-  } else {
-    // Wander: simple obstacle avoidance
-    aiTimer -= dt;
-    if (aiTimer <= 0) {
-      aiTimer = 0.8 + Math.random() * 0.9;
-      aiTurnDir = Math.random() < 0.5 ? -1 : 1;
-    }
-    enemy.updateMovement(dt, aiTurnDir < 0, aiTurnDir > 0, true, false);
+  // On first LOS, hesitate before firing
+  if (sight && !aiHasSight) {
+    aiHoldFireTimer = 0.9 + Math.random() * 0.7; // ~0.9–1.6s
+  }
+  aiHasSight = sight;
+  if (aiHoldFireTimer > 0) aiHoldFireTimer -= dt;
+
+  // Obstacle-aware steering using feelers
+  const leftFeel = distanceToWall(enemy.x, enemy.y, enemy.angle - 0.8, 180);
+  const rightFeel = distanceToWall(enemy.x, enemy.y, enemy.angle + 0.8, 180);
+  const fwdFeel = distanceToWall(enemy.x, enemy.y, enemy.angle, 160);
+
+  let steer = clamp(diff, -0.8, 0.8); // base: face player
+  const avoid = clamp((rightFeel - leftFeel) * 0.005, -0.7, 0.7); // turn toward free space
+  const panic = fwdFeel < 40 ? (leftFeel < rightFeel ? 0.7 : -0.7) : 0; // if wall close ahead, pick clearer side
+  steer += avoid + panic;
+
+  const turnLeft = steer < -0.06;
+  const turnRight = steer > 0.06;
+  const goForward = fwdFeel > 24;
+  const goBackward = false;
+  enemy.updateMovement(dt, turnLeft, turnRight, goForward, goBackward);
+
+  // Fire only after delay and with good alignment
+  if (sight && aiHoldFireTimer <= 0 && enemy.canFire()) {
+    if (Math.abs(diff) < 0.15) enemy.fire();
   }
 }
 
@@ -435,7 +488,8 @@ function handleCombat(dt) {
       if (b.color === enemy.color) {
         scores.e += 1; hud.eScore.textContent = scores.e;
         spawnExplosion(player.x, player.y);
-        resetPositions();
+        b.alive = false;
+        respawnLoser(player, enemy);
         return;
       }
     }
@@ -443,7 +497,8 @@ function handleCombat(dt) {
       if (b.color === player.color) {
         scores.p += 1; hud.pScore.textContent = scores.p;
         spawnExplosion(enemy.x, enemy.y);
-        resetPositions();
+        b.alive = false;
+        respawnLoser(enemy, player);
         return;
       }
     }
