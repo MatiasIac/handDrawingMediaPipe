@@ -176,7 +176,7 @@ const maze = [
   { x: 0.42, y: 0.58, w: 0.02, h: 0.20 },
   { x: 0.74, y: 0.30, w: 0.02, h: 0.20 },
   // Center box with gaps
-  //{ x: 0.40, y: 0.35, w: 0.20, h: 0.02 },
+  { x: 0.40, y: 0.35, w: 0.20, h: 0.02 },
   //{ x: 0.40, y: 0.35, w: 0.02, h: 0.20 },
   //{ x: 0.58, y: 0.35, w: 0.02, h: 0.20 },
   //{ x: 0.40, y: 0.53, w: 0.20, h: 0.02 },
@@ -274,6 +274,16 @@ function segCircleIntersects(p0, p1, cx, cy, r) {
   const px = p0.x + vx * t, py = p0.y + vy * t;
   const dx = cx - px, dy = cy - py;
   return dx * dx + dy * dy <= r * r;
+}
+
+function canOccupy(x, y, r) {
+  // Check if a circle at (x,y) of radius r is free (not colliding or out of bounds)
+  if (x - r < 0 || y - r < 0 || x + r > canvas.clientWidth || y + r > canvas.clientHeight) return false;
+  for (const m of maze) {
+    const { x: rx, y: ry, w: rw, h: rh } = wallPx(m);
+    if (circleRectCollision(x, y, r, rx, ry, rw, rh)) return false;
+  }
+  return true;
 }
 
 // Rendering helpers
@@ -471,6 +481,7 @@ function resetPositions() {
   bullets = [];
   player.bullet = null;
   enemy.bullet = null;
+  aiLastPos.x = enemy.x; aiLastPos.y = enemy.y;
 }
 
 function respawnLoser(loser, winner) {
@@ -496,6 +507,7 @@ function respawnLoser(loser, winner) {
   bullets = [];
   player.bullet = null;
   enemy.bullet = null;
+  if (loser === enemy) { aiLastPos.x = enemy.x; aiLastPos.y = enemy.y; }
 }
 
 function hasLineOfSight(ax, ay, bx, by) {
@@ -507,9 +519,109 @@ function hasLineOfSight(ax, ay, bx, by) {
   return true;
 }
 
-// Simple AI controller — less random, obstacle-aware, delayed firing
+// Navigation grid for simple path following
+const NAV = { cols: 28, rows: 16, grid: [], dist: [], cw: 0, ch: 0, W: 0, H: 0, lastPlayerCell: -1, repathTimer: 0 };
+function navIndex(cx, cy) { return cy * NAV.cols + cx; }
+function worldToCell(x, y) {
+  const cx = clamp(Math.floor(x / NAV.cw), 0, NAV.cols - 1);
+  const cy = clamp(Math.floor(y / NAV.ch), 0, NAV.rows - 1);
+  return { cx, cy };
+}
+function cellCenter(cx, cy) {
+  return { x: (cx + 0.5) * NAV.cw, y: (cy + 0.5) * NAV.ch };
+}
+function rebuildNavGrid() {
+  NAV.W = canvas.clientWidth; NAV.H = canvas.clientHeight;
+  NAV.cw = NAV.W / NAV.cols; NAV.ch = NAV.H / NAV.rows;
+  const rad = Math.max(player.radius, enemy.radius) * 1.15;
+  NAV.grid = new Uint8Array(NAV.cols * NAV.rows);
+  for (let cy = 0; cy < NAV.rows; cy++) {
+    for (let cx = 0; cx < NAV.cols; cx++) {
+      const { x, y } = cellCenter(cx, cy);
+      NAV.grid[navIndex(cx, cy)] = canOccupy(x, y, rad) ? 1 : 0;
+    }
+  }
+}
+function computeNavDistancesFromPlayer() {
+  const pc = worldToCell(player.x, player.y);
+  const start = navIndex(pc.cx, pc.cy);
+  NAV.dist = new Int16Array(NAV.cols * NAV.rows);
+  NAV.dist.fill(32767);
+  const qx = new Int16Array(NAV.cols * NAV.rows);
+  const qy = new Int16Array(NAV.cols * NAV.rows);
+  let qh = 0, qt = 0;
+  if (NAV.grid[start]) {
+    NAV.dist[start] = 0;
+    qx[qt] = pc.cx; qy[qt] = pc.cy; qt++;
+  }
+  const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
+  while (qh < qt) {
+    const cx = qx[qh], cy = qy[qh]; qh++;
+    const cd = NAV.dist[navIndex(cx, cy)];
+    for (let i = 0; i < 4; i++) {
+      const nx = cx + dirs[i][0], ny = cy + dirs[i][1];
+      if (nx < 0 || ny < 0 || nx >= NAV.cols || ny >= NAV.rows) continue;
+      const ni = navIndex(nx, ny);
+      if (!NAV.grid[ni]) continue;
+      if (NAV.dist[ni] <= cd + 1) continue;
+      NAV.dist[ni] = cd + 1;
+      qx[qt] = nx; qy[qt] = ny; qt++;
+    }
+  }
+  NAV.lastPlayerCell = start;
+}
+function ensureNav(dt) {
+  NAV.repathTimer -= dt;
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  // Rebuild distances if screen size or player cell changed or timer elapsed
+  const sizeChanged = (W !== NAV.W || H !== NAV.H);
+  if (sizeChanged) rebuildNavGrid();
+  const pc = worldToCell(player.x, player.y);
+  const pci = navIndex(pc.cx, pc.cy);
+  if (sizeChanged || NAV.repathTimer <= 0 || pci !== NAV.lastPlayerCell) {
+    if (!sizeChanged) { /* grid stays, recompute distances */ }
+    if (!NAV.grid || NAV.grid.length === 0) rebuildNavGrid();
+    computeNavDistancesFromPlayer();
+    NAV.repathTimer = 0.25; // seconds
+  }
+}
+function navWaypoint(ex, ey) {
+  // Returns a world point in neighbor cell of enemy that reduces distance to player
+  const ec = worldToCell(ex, ey);
+  const ei = navIndex(ec.cx, ec.cy);
+  if (!NAV.grid[ei]) {
+    // Snap to nearest passable neighbor
+    const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
+    for (const d of dirs) {
+      const nx = clamp(ec.cx + d[0], 0, NAV.cols - 1);
+      const ny = clamp(ec.cy + d[1], 0, NAV.rows - 1);
+      const ni = navIndex(nx, ny);
+      if (NAV.grid[ni]) return cellCenter(nx, ny);
+    }
+    return null;
+  }
+  let best = { cx: ec.cx, cy: ec.cy };
+  let bestD = NAV.dist[ei];
+  const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
+  for (const d of dirs) {
+    const nx = ec.cx + d[0], ny = ec.cy + d[1];
+    if (nx < 0 || ny < 0 || nx >= NAV.cols || ny >= NAV.rows) continue;
+    const ni = navIndex(nx, ny);
+    if (!NAV.grid[ni]) continue;
+    const nd = NAV.dist[ni];
+    if (nd < bestD) { bestD = nd; best = { cx: nx, cy: ny }; }
+  }
+  if (best.cx === ec.cx && best.cy === ec.cy) return cellCenter(ec.cx, ec.cy);
+  return cellCenter(best.cx, best.cy);
+}
+
+// Simple AI controller — path-following, obstacle-aware, delayed firing
 let aiHasSight = false;
 let aiHoldFireTimer = 0; // delay after acquiring line-of-sight before firing
+let aiUnstickTimer = 0;
+let aiUnstickDir = 0; // -1 left, +1 right
+let aiProgressTimer = 0;
+let aiLastPos = { x: 0, y: 0 };
 
 function distanceToWall(x, y, ang, maxDist = 200) {
   const step = 6;
@@ -542,16 +654,43 @@ function updateAI(dt) {
   const rightFeel = distanceToWall(enemy.x, enemy.y, enemy.angle + 0.8, 180);
   const fwdFeel = distanceToWall(enemy.x, enemy.y, enemy.angle, 160);
 
-  let steer = clamp(diff, -0.8, 0.8); // base: face player
+  // Base steering: if sight, face player; else follow simple nav waypoint
+  let steerTargetAng = targetAng;
+  if (!sight) {
+    ensureNav(dt);
+    const wp = navWaypoint(enemy.x, enemy.y);
+    if (wp) steerTargetAng = angleTo(enemy.x, enemy.y, wp.x, wp.y);
+  }
+  let steer = clamp(angDiff(enemy.angle, steerTargetAng), -0.8, 0.8);
   const avoid = clamp((rightFeel - leftFeel) * 0.005, -0.7, 0.7); // turn toward free space
   const panic = fwdFeel < 40 ? (leftFeel < rightFeel ? 0.7 : -0.7) : 0; // if wall close ahead, pick clearer side
   steer += avoid + panic;
 
   const turnLeft = steer < -0.06;
   const turnRight = steer > 0.06;
-  const goForward = fwdFeel > 24;
-  const goBackward = false;
-  enemy.updateMovement(dt, turnLeft, turnRight, goForward, goBackward);
+  let goForward = fwdFeel > 24;
+  let goBackward = false;
+
+  // Detect being stuck (trying to go forward but barely moving)
+  const moved = Math.hypot(enemy.x - aiLastPos.x, enemy.y - aiLastPos.y);
+  if (goForward && moved < 8 * dt && fwdFeel < 50) {
+    aiProgressTimer += dt;
+  } else {
+    aiProgressTimer = 0;
+  }
+  if (aiProgressTimer > 0.6) {
+    aiUnstickTimer = 0.5;
+    aiUnstickDir = (leftFeel < rightFeel) ? 1 : -1; // turn toward free side
+    aiProgressTimer = 0;
+  }
+  if (aiUnstickTimer > 0) {
+    aiUnstickTimer -= dt;
+    // Override with unstick maneuver
+    enemy.updateMovement(dt, aiUnstickDir < 0, aiUnstickDir > 0, fwdFeel > 30, fwdFeel <= 20);
+  } else {
+    enemy.updateMovement(dt, turnLeft, turnRight, goForward, goBackward);
+  }
+  aiLastPos.x = enemy.x; aiLastPos.y = enemy.y;
 
   // Fire only after delay and with good alignment
   if (sight && aiHoldFireTimer <= 0 && enemy.canFire()) {
